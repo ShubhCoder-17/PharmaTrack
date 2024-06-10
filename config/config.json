@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "root",
+    "password": "Shubh@1705",
+    "database": "pharmadb",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 33060
+  },
+  "test": {
+    "username": "root",
+    "password": "Shubh@1705",
+    "database": "pharmadb_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 33060
+  },
+  "production": {
+    "username": "root",
+    "password": "Shubh@1705",
+    "database": "pharmadb_prod",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 33060
+  }
+}
