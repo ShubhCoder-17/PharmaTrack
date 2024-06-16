@@ -1,52 +1,32 @@
-// // models/user.cjs
-// const { DataTypes } = require('sequelize');
-// const sequelize = require('./index.cjs'); // Ensure the correct path
-
-// const User = sequelize.define('User', {
-//   id: {
-//     type: DataTypes.INTEGER,
-//     primaryKey: true,
-//     autoIncrement: true,
-//   },
-//   name: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//   },
-//   email: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     unique: true,
-//   },
-//   password: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//   },
-// }, {
-//   tableName: 'users', // Name of the table in the database
-//   timestamps: false, // Disable timestamps if not used
-// });
-
-// module.exports = User;
-
-
+// models/user.cjs
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('./index.cjs');
 const bcrypt = require('bcryptjs');
 
+const sequelize = new Sequelize('pharmadb', 'root', 'Shubh@1705', {
+  host: '127.0.0.1',
+  dialect: 'mysql',
+  port: 33060
+});
+
 const User = sequelize.define('User', {
-  name: {
+  username: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    unique: true
+  }
 }, {
   hooks: {
     beforeCreate: async (user) => {
@@ -54,17 +34,12 @@ const User = sequelize.define('User', {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
-    },
-    beforeUpdate: async (user) => {
-      if (user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    },
+    }
   }
 });
 
-User.prototype.validatePassword = async function(password) {
+// Instance method to validate password
+User.prototype.validatePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
