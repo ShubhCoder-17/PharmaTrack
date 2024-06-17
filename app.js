@@ -1,4 +1,4 @@
-require('dotenv').config();
+// Import necessary modules and validators
 const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -7,6 +7,7 @@ const winston = require('winston');
 const { Sequelize } = require('sequelize');
 const User = require('./models/user.cjs'); // Adjust the path as needed
 const authenticateToken = require('./middleware/authenticateToken'); // Ensure this path is correct
+const { validateUserRegistration } = require('./validators'); // Adjust the path as needed
 
 const app = express();
 app.use(bodyParser.json());
@@ -42,7 +43,7 @@ sequelize.sync()
   });
 
 // User registration route
-app.post('/register', async (req, res) => {
+app.post('/register', validateUserRegistration, async (req, res) => {
   const { username, password, name, email } = req.body;
   try {
     // Check if name and email are provided
@@ -171,6 +172,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to PharmaTrack, Hope this App will Help you!');
 });
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

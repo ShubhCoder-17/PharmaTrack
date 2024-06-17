@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models/user'); // Adjust the path as needed
+const { User } = require('C:\Users\1705p\pharma-backend\models\user'); // Adjust the path as needed
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
