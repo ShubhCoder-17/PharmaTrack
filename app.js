@@ -1,4 +1,3 @@
-// Import necessary modules and validators
 const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -6,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const winston = require('winston');
 const { Sequelize } = require('sequelize');
 const User = require('./models/user.cjs'); // Adjust the path as needed
-const authenticateToken = require('./middleware/authenticateToken'); // Ensure this path is correct
+const authenticateToken = require('./middleware/authenticateToken');
 const { validateUserRegistration } = require('./validators'); // Adjust the path as needed
 
 const app = express();
@@ -42,15 +41,13 @@ sequelize.sync()
     console.error('Database connection failed:', err);
   });
 
+// In-memory token blacklist (for demonstration purposes)
+let revokedTokens = [];
+
 // User registration route
 app.post('/register', validateUserRegistration, async (req, res) => {
   const { username, password, name, email } = req.body;
   try {
-    // Check if name and email are provided
-    if (!name || !email) {
-      return res.status(400).json({ message: 'Name and email are required' });
-    }
-
     const user = await User.create({ username, password, name, email });
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
@@ -93,6 +90,13 @@ app.post('/login', async (req, res) => {
     });
     res.status(500).json({ message: 'Login failed', error: error.message });
   }
+});
+
+// Logout route
+app.post('/logout', authenticateToken, (req, res) => {
+  const token = req.headers['authorization'].split(' ')[1];
+  revokedTokens.push(token);
+  res.json({ message: 'Logged out successfully' });
 });
 
 // Protected Route
