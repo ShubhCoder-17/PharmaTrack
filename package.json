@@ -24,6 +24,7 @@
     "mysql2": "^3.10.0",
     "named-placeholders": "^1.1.3",
     "pg-connection-string": "^2.6.4",
+    "redis": "^4.6.14",
     "retry-as-promised": "^7.0.4",
     "safer-buffer": "^2.1.2",
     "semver": "^7.6.2",
