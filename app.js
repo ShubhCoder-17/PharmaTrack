@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -7,6 +8,7 @@ const { Sequelize } = require('sequelize');
 const User = require('./models/user.cjs'); // Adjust the path as needed
 const authenticateToken = require('./middleware/authenticateToken');
 const { validateUserRegistration } = require('./validators'); // Adjust the path as needed
+const BlacklistedToken = require('./models/BlacklistedToken'); // MongoDB Model for Blacklisted Tokens
 
 const app = express();
 app.use(bodyParser.json());
@@ -24,25 +26,28 @@ const logger = winston.createLogger({
   ]
 });
 
-// Database connection
+// MongoDB connection for blacklisting tokens
+mongoose.connect('mongodb://localhost:27017/your-database-name', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+// MySQL connection using Sequelize
 const sequelize = new Sequelize('pharmadb', 'root', 'Shubh@1705', {
   host: '127.0.0.1',
   dialect: 'mysql',
   port: 33060
 });
 
-// Sync database
+// Sync MySQL database
 sequelize.sync()
   .then(() => {
-    console.log('Database connected and synchronized');
+    console.log('MySQL database connected and synchronized');
   })
   .catch(err => {
-    logger.error('Database connection failed:', err);
-    console.error('Database connection failed:', err);
+    logger.error('MySQL database connection failed:', err);
+    console.error('MySQL database connection failed:', err);
   });
-
-// In-memory token blacklist (for demonstration purposes)
-let revokedTokens = [];
 
 // User registration route
 app.post('/register', validateUserRegistration, async (req, res) => {
@@ -51,7 +56,6 @@ app.post('/register', validateUserRegistration, async (req, res) => {
     const user = await User.create({ username, password, name, email });
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
-    // Handle validation errors
     if (error.name === 'SequelizeValidationError') {
       const errors = error.errors.map(err => ({
         message: err.message,
@@ -60,7 +64,6 @@ app.post('/register', validateUserRegistration, async (req, res) => {
       }));
       return res.status(400).json({ message: 'Validation error', errors });
     }
-    // Handle other errors
     logger.error('User registration error:', {
       message: error.message,
       stack: error.stack,
@@ -93,9 +96,15 @@ app.post('/login', async (req, res) => {
 });
 
 // Logout route
-app.post('/logout', authenticateToken, (req, res) => {
+app.post('/logout', authenticateToken, async (req, res) => {
   const token = req.headers['authorization'].split(' ')[1];
-  revokedTokens.push(token);
+  const decodedToken = jwt.decode(token);
+  const expiresAt = new Date(decodedToken.exp * 1000);
+
+  // Save the blacklisted token
+  const blacklistedToken = new BlacklistedToken({ token, expiresAt });
+  await blacklistedToken.save();
+
   res.json({ message: 'Logged out successfully' });
 });
 
@@ -181,3 +190,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

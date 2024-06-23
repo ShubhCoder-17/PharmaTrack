@@ -1,3 +1,4 @@
+// middleware/authenticateToken.js
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/user.cjs'); // Adjust the path as needed
 
@@ -7,10 +8,6 @@ const authenticateToken = (req, res, next) => {
 
   if (!token) {
     return res.status(401).json({ message: 'Access token is missing' });
-  }
-
-  if (revokedTokens.includes(token)) {
-    return res.status(403).json({ message: 'Token has been revoked' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {

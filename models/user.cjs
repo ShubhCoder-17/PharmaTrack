@@ -1,12 +1,5 @@
-// models/user.cjs
 const { Sequelize, DataTypes } = require('sequelize');
-const bcrypt = require('bcryptjs');
-
-const sequelize = new Sequelize('pharmadb', 'root', 'Shubh@1705', {
-  host: '127.0.0.1',
-  dialect: 'mysql',
-  port: 33060
-});
+const sequelize = require('../database'); // Ensure the path to the database.js file is correct
 
 const User = sequelize.define('User', {
   username: {
@@ -28,19 +21,7 @@ const User = sequelize.define('User', {
     unique: true
   }
 }, {
-  hooks: {
-    beforeCreate: async (user) => {
-      if (user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    }
-  }
+  timestamps: true
 });
-
-// Instance method to validate password
-User.prototype.validatePassword = async function (password) {
-  return bcrypt.compare(password, this.password);
-};
 
 module.exports = User;

@@ -5,7 +5,9 @@
     "database": "pharmadb",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "port": 33060
+    "port": 3306,
+    "jwt_secret": "239ce72f309fadc81c092220e52524b7e76a77d345b411058d7ba1822a2aedbb",
+    "mongodb_uri": "mongodb://localhost:27017/pharmadb"
   },
   "test": {
     "username": "root",
@@ -13,14 +15,18 @@
     "database": "pharmadb_test",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "port": 33060
+    "port": 3306,
+    "jwt_secret": "239ce72f309fadc81c092220e52524b7e76a77d345b411058d7ba1822a2aedbb",
+    "mongodb_uri": "mongodb://localhost:27017/pharmadb"
   },
   "production": {
     "username": "root",
     "password": "Shubh@1705",
     "database": "pharmadb_prod",
-    "host": "127.0.0.1",
+    "host": "127.0.01",
     "dialect": "mysql",
-    "port": 33060
+    "port": 3306,
+    "jwt_secret": "239ce72f309fadc81c092220e52524b7e76a77d345b411058d7ba1822a2aedbb",
+    "mongodb_uri": "mongodb://localhost:27017/pharmadb"
   }
 }
