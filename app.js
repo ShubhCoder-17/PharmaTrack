@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -53,8 +54,9 @@ sequelize.sync()
 app.post('/register', validateUserRegistration, async (req, res) => {
   const { username, password, name, email } = req.body;
   try {
-    const user = await User.create({ username, password, name, email });
-    res.status(201).json({ message: 'User registered successfully', user });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({ username, password: hashedPassword, name, email });
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
     if (error.name === 'SequelizeValidationError') {
       const errors = error.errors.map(err => ({
@@ -79,12 +81,19 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ where: { username } });
-    if (user && await user.validatePassword(password)) {
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.json({ message: 'Login successful', token });
-    } else {
-      res.status(401).json({ message: 'Invalid username or password' });
+    if (!user) {
+      console.log('User not found');
+      return res.status(401).json({ message: 'Invalid username or password' });
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log('Password is invalid');
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ message: 'Login successful', token });
   } catch (error) {
     logger.error('Login error:', {
       message: error.message,
@@ -108,7 +117,7 @@ app.post('/logout', authenticateToken, async (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
-// Protected Route
+// Protected route
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This is a protected route', user: req.user });
 });
@@ -190,4 +199,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
