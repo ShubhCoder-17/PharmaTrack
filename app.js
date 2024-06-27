@@ -1,4 +1,4 @@
-require('dotenv').config();
+// app.js or server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -10,6 +10,7 @@ const User = require('./models/user.cjs'); // Adjust the path as needed
 const authenticateToken = require('./middleware/authenticateToken');
 const { validateUserRegistration } = require('./validators'); // Adjust the path as needed
 const BlacklistedToken = require('./models/BlacklistedToken'); // MongoDB Model for Blacklisted Tokens
+const passwordResetRouter = require('./routes/passwordReset'); // Import the password reset routes
 
 const app = express();
 app.use(bodyParser.json());
@@ -49,6 +50,9 @@ sequelize.sync()
     logger.error('MySQL database connection failed:', err);
     console.error('MySQL database connection failed:', err);
   });
+
+// Routes
+app.use('/password-reset', passwordResetRouter); // Add password reset routes
 
 // User registration route
 app.post('/register', validateUserRegistration, async (req, res) => {
