@@ -1,20 +1,19 @@
-// middleware/authenticateToken.js
 const jwt = require('jsonwebtoken');
-const { User } = require('../models/user.cjs'); // Adjust the path as needed
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-
+  
   if (!token) {
-    return res.status(401).json({ message: 'Access token is missing' });
+    return res.status(401).json({ message: 'Access denied. Token not provided.' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
+      console.error('JWT verify error:', err);
+      return res.status(403).json({ message: 'Access denied. Invalid token.' });
     }
-    req.user = user; // Attach user data to request object
+    req.user = decoded;
     next();
   });
 };
