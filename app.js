@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const User = require('./models/user.cjs'); // Adjust the path as needed
 const sequelize = require('./database'); // Adjust the path as per your project structure
-const User = require('./models/user.cjs'); // Adjust the path as per your project structure
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const winston = require('winston');
 const BlacklistedToken = require('./models/BlacklistedToken'); // MongoDB Model for Blacklisted Tokens
 const passwordResetRouter = require('./routes/passwordReset'); // Import the password reset routes
@@ -28,11 +29,13 @@ const logger = winston.createLogger({
   ]
 });
 
-// MongoDB connection for blacklisting tokens
-mongoose.connect('mongodb://localhost:27017/your-database-name', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+// MongoDB connection for user data
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => {
+    logger.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
+  });
 
 // MySQL connection using Sequelize
 sequelize.authenticate()
@@ -105,6 +108,7 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Failed to login', error: error.message });
   }
 });
+
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This is a protected route', user: req.user });
@@ -179,7 +183,21 @@ app.delete('/users/:id', async (req, res) => {
 
 // Default route
 app.get('/', (req, res) => {
-  res.send('Welcome to PharmaTrack, Hope this App will Help you!');
+  res.send('Welcome to PharmaTrack, we will be ready soon');
+});
+
+// 404 Middleware
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  logger.error('Internal server error:', {
+    message: err.message,
+    stack: err.stack
+  });
+  res.status(500).json({ message: 'Internal server error' });
 });
 
 // Start the server
