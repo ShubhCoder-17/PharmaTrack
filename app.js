@@ -87,21 +87,105 @@ app.post('/register', async (req, res) => {
 });
 
 // User login route
+// app.post('/login', async (req, res) => {
+//   const { username, password } = req.body;
+
+//   console.log('Login request received:', { username, password });
+
+//   try {
+//     // Find the user by username
+//     const user = await User.findOne({ where: { username } });
+//     console.log('User found:', user);
+
+//     if (!user) {
+//       console.log('Invalid username');
+//       return res.status(401).json({ message: 'Invalid username or password' });
+//     }
+
+//     // Compare the provided password with the hashed password in the database
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     console.log('Password valid:', isPasswordValid);
+
+//     if (!isPasswordValid) {
+//       console.log('Invalid password');
+//       return res.status(401).json({ message: 'Invalid username or password' });
+//     }
+
+//     // Generate a JWT token
+//     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+//     console.log('Token generated:', token);
+
+//     res.json({ message: 'Login successful', token });
+//   } catch (error) {
+//     console.error('Error logging in:', error);
+//     res.status(500).json({ message: 'Failed to login', error: error.message });
+//   }
+// });
+
+// // Protected route
+// app.get('/protected', authenticateToken, (req, res) => {
+//   res.json({ message: 'This is a protected route', user: req.user });
+// });
+
+// User login route with debug logs
+// app.post('/login', async (req, res) => {
+//   const { username, password } = req.body;
+//   try {
+//     const user = await User.findOne({ where: { username } });
+//     if (!user) {
+//       console.log('User not found');
+//       return res.status(401).json({ message: 'Invalid username or password' });
+//     }
+
+//     console.log('User found:', user);
+
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     console.log('Password is valid:', isPasswordValid);
+
+//     if (!isPasswordValid) {
+//       console.log('Password is invalid');
+//       return res.status(401).json({ message: 'Invalid username or password' });
+//     }
+
+//     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+//     res.json({ message: 'Login successful', token });
+//   } catch (error) {
+//     logger.error('Login error:', {
+//       message: error.message,
+//       stack: error.stack,
+//       input: req.body
+//     });
+//     res.status(500).json({ message: 'Login failed', error: error.message });
+//   }
+// });
+
+// User login route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
+  console.log('Login request received:', { username, password });
+
   try {
+    // Find the user by username
     const user = await User.findOne({ where: { username } });
+    console.log('User found:', user);
+
     if (!user) {
+      console.log('Invalid username');
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
+    // Compare the provided password with the hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('Invalid password');
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
+    // Generate a JWT token
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log('Token generated:', token);
+
     res.json({ message: 'Login successful', token });
   } catch (error) {
     console.error('Error logging in:', error);
@@ -109,10 +193,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Protected route
-app.get('/protected', authenticateToken, (req, res) => {
-  res.json({ message: 'This is a protected route', user: req.user });
-});
 
 // Fetch User Details
 app.get('/users/:id', async (req, res) => {
