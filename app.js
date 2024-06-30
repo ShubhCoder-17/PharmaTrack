@@ -2,11 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const User = require('./models/user.cjs'); // Adjust the path as needed
-const sequelize = require('./database'); // Adjust the path as per your project structure
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const winston = require('winston');
+const User = require('./models/user.cjs'); // Adjust the path as needed
+const sequelize = require('./database'); // Adjust the path as per your project structure
 const BlacklistedToken = require('./models/BlacklistedToken'); // MongoDB Model for Blacklisted Tokens
 const passwordResetRouter = require('./routes/passwordReset'); // Import the password reset routes
 const authenticateToken = require('./middleware/authenticateToken'); // Import the authenticateToken middleware
@@ -63,12 +63,26 @@ app.use('/password-reset', passwordResetRouter); // Add password reset routes
 // User registration route
 app.post('/register', async (req, res) => {
   const { username, password, name, email } = req.body;
+  
   try {
+    console.log('Received registration request:', req.body);
+
+    // Check if name and email are provided
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Hashed password:', hashedPassword);
+
     const newUser = await User.create({ username, password: hashedPassword, name, email });
+    console.log('User created:', newUser);
+
     res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
-    if (error.name === 'SequelizeValidationError') {
+    console.error('Error during registration:', error);
+
+    if (error.name === 'SequelizeValidationError' || error.name === 'ValidationError') {
       const errors = error.errors.map(err => ({
         message: err.message,
         type: err.type,
@@ -76,88 +90,11 @@ app.post('/register', async (req, res) => {
       }));
       return res.status(400).json({ message: 'Validation error', errors });
     }
-    logger.error('User registration error:', {
-      message: error.message,
-      stack: error.stack,
-      input: req.body
-    });
-    console.error('User registration error:', error);
+
     res.status(500).json({ message: 'User registration failed', error: error.message });
   }
 });
 
-// User login route
-// app.post('/login', async (req, res) => {
-//   const { username, password } = req.body;
-
-//   console.log('Login request received:', { username, password });
-
-//   try {
-//     // Find the user by username
-//     const user = await User.findOne({ where: { username } });
-//     console.log('User found:', user);
-
-//     if (!user) {
-//       console.log('Invalid username');
-//       return res.status(401).json({ message: 'Invalid username or password' });
-//     }
-
-//     // Compare the provided password with the hashed password in the database
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     console.log('Password valid:', isPasswordValid);
-
-//     if (!isPasswordValid) {
-//       console.log('Invalid password');
-//       return res.status(401).json({ message: 'Invalid username or password' });
-//     }
-
-//     // Generate a JWT token
-//     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-//     console.log('Token generated:', token);
-
-//     res.json({ message: 'Login successful', token });
-//   } catch (error) {
-//     console.error('Error logging in:', error);
-//     res.status(500).json({ message: 'Failed to login', error: error.message });
-//   }
-// });
-
-// // Protected route
-// app.get('/protected', authenticateToken, (req, res) => {
-//   res.json({ message: 'This is a protected route', user: req.user });
-// });
-
-// User login route with debug logs
-// app.post('/login', async (req, res) => {
-//   const { username, password } = req.body;
-//   try {
-//     const user = await User.findOne({ where: { username } });
-//     if (!user) {
-//       console.log('User not found');
-//       return res.status(401).json({ message: 'Invalid username or password' });
-//     }
-
-//     console.log('User found:', user);
-
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     console.log('Password is valid:', isPasswordValid);
-
-//     if (!isPasswordValid) {
-//       console.log('Password is invalid');
-//       return res.status(401).json({ message: 'Invalid username or password' });
-//     }
-
-//     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-//     res.json({ message: 'Login successful', token });
-//   } catch (error) {
-//     logger.error('Login error:', {
-//       message: error.message,
-//       stack: error.stack,
-//       input: req.body
-//     });
-//     res.status(500).json({ message: 'Login failed', error: error.message });
-//   }
-// });
 
 // User login route
 app.post('/login', async (req, res) => {
@@ -168,7 +105,6 @@ app.post('/login', async (req, res) => {
   try {
     // Find the user by username
     const user = await User.findOne({ where: { username } });
-    console.log('User found:', user);
 
     if (!user) {
       console.log('Invalid username');

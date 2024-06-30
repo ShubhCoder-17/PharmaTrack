@@ -18,7 +18,7 @@
   "production": {
     "username": "root",
     "password": "your_password",
-    "database": "pharmadb_prod",
+    "database": "pharmadb_production",
     "host": "localhost",
     "dialect": "mysql",
     "port": 33060
