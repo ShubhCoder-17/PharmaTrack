@@ -60,7 +60,7 @@ sequelize.sync()
 // Routes
 app.use('/password-reset', passwordResetRouter); // Add password reset routes
 
-// User registration route
+//Registration of user
 app.post('/register', async (req, res) => {
   const { username, password, name, email } = req.body;
   
