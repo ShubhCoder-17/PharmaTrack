@@ -10,6 +10,7 @@ const sequelize = require('./database'); // Adjust the path as per your project 
 const BlacklistedToken = require('./models/BlacklistedToken'); // MongoDB Model for Blacklisted Tokens
 const passwordResetRouter = require('./routes/passwordReset'); // Import the password reset routes
 const authenticateToken = require('./middleware/authenticateToken'); // Import the authenticateToken middleware
+const sendEmail = require('./mailer'); // Import the sendEmail function
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,10 +61,10 @@ sequelize.sync()
 // Routes
 app.use('/password-reset', passwordResetRouter); // Add password reset routes
 
-//Registration of user
+// Registration of user
 app.post('/register', async (req, res) => {
   const { username, password, name, email } = req.body;
-  
+
   try {
     console.log('Received registration request:', req.body);
 
@@ -77,6 +78,9 @@ app.post('/register', async (req, res) => {
 
     const newUser = await User.create({ username, password: hashedPassword, name, email });
     console.log('User created:', newUser);
+
+    // Send welcome email
+    await sendEmail(email, 'Welcome to Our App', `Hi ${name}, welcome to our app!`, `<h1>Hi ${name},</h1><p>Welcome to our app!</p>`);
 
     res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
@@ -94,7 +98,6 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ message: 'User registration failed', error: error.message });
   }
 });
-
 
 // User login route
 app.post('/login', async (req, res) => {
@@ -128,7 +131,6 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Failed to login', error: error.message });
   }
 });
-
 
 // Fetch User Details
 app.get('/users/:id', async (req, res) => {
